@@ -1,5 +1,5 @@
 #ResourceGroup
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "rg01" {
   name     = var.resource_group_name
   location = var.location
 }
@@ -8,7 +8,7 @@ resource "azurerm_resource_group" "rg" {
 resource "azurerm_network_security_group" "app_nsg" {
   name                = "Appnsg"
   location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg01.name
 
   security_rule {
     name                       = "Allow-SSH"
@@ -23,7 +23,7 @@ resource "azurerm_network_security_group" "app_nsg" {
   }
 
   security_rule {
-    name                       = "Allow-Flask"
+    name                       = "Allow-flask"
     priority                   = 110
     direction                  = "Inbound"
     access                     = "Allow"
@@ -51,7 +51,7 @@ resource "azurerm_network_security_group" "app_nsg" {
 resource "azurerm_public_ip" "public_ip" {
   name                = "MyAppVM-ip"
   location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg01.name
   allocation_method   = "Static"
 }
 
@@ -59,7 +59,7 @@ resource "azurerm_public_ip" "public_ip" {
 resource "azurerm_network_interface" "nic" {
   name                = "app-nic"
   location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg01.name
 
   ip_configuration {
     name                          = "internal"
@@ -78,7 +78,7 @@ resource "azurerm_network_interface_security_group_association" "assoc" {
 #Virtual_Machine
 resource "azurerm_linux_virtual_machine" "vm" {
   name                = "MyAppVM"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg01.name
   location            = var.location
   size                = "Standard_D2s_v3"
 
@@ -113,9 +113,9 @@ custom_data = base64encode(templatefile("${path.module}/setup.sh", {
 
 #azurerm_mysql_flexible_server
 resource "azurerm_mysql_flexible_server" "mysql" {
-  name                   = "database12345unique"
-  resource_group_name    = azurerm_resource_group.rg.name
-  location               = var.location
+  name                   = "sabidatabase12345unique"
+  resource_group_name    = azurerm_resource_group.rg01.name
+  location               = "koreacentral"
 
   administrator_login    = var.mysql_admin
   administrator_password = var.mysql_password
@@ -132,7 +132,7 @@ resource "azurerm_mysql_flexible_server" "mysql" {
 resource "azurerm_mysql_flexible_server_firewall_rule" "allow_vm" {
   name                = "Allow-VM-IP"
   server_name         = azurerm_mysql_flexible_server.mysql.name
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.rg01.name
 
   start_ip_address = azurerm_public_ip.public_ip.ip_address
   end_ip_address   = azurerm_public_ip.public_ip.ip_address
